@@ -16,6 +16,8 @@ class Delivery extends Model {
         sequelize,
       }
     );
+
+    return this;
   }
 }
 
