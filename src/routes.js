@@ -19,6 +19,7 @@ routes.use(authMiddleware);
 routes.post('/recipients', RecipientController.store);
 
 routes.post('/deliverymans', DeliverymanController.store);
+routes.get('/deliverymans', DeliverymanController.index);
 
 // routes.post('/deliveries', RecipientController.store);
 
