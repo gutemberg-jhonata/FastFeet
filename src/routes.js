@@ -20,7 +20,8 @@ routes.post('/recipients', RecipientController.store);
 
 routes.post('/deliverymans', DeliverymanController.store);
 routes.get('/deliverymans', DeliverymanController.index);
-routes.put('/deliverymans', DeliverymanController.update);
+routes.put('/deliverymans/:id', DeliverymanController.update);
+routes.delete('/deliverymans/:id', DeliverymanController.delete);
 
 // routes.post('/deliveries', RecipientController.store);
 

@@ -56,14 +56,19 @@ class DeliverymanController {
       email: Yup.string().email().required(),
     });
 
-    if (!(await schema.isValid(req.body))) {
+    if (
+      !(await schema.isValid({
+        ...req.params,
+        ...req.body,
+      }))
+    ) {
       return res.status(400).json({ error: 'Validation fails' });
     }
 
     /**
      * Check if Deliveryman exists
      */
-    const deliveryman = await Deliveryman.findByPk(req.body.id);
+    const deliveryman = await Deliveryman.findByPk(req.params.id);
 
     if (!deliveryman) {
       return res.status(400).json({ error: 'Deliveryman does not exists' });
@@ -103,6 +108,10 @@ class DeliverymanController {
       avatar_id,
       email,
     });
+  }
+
+  async delete(req, res) {
+    return res.json({ teste: 'ok' });
   }
 }
 
