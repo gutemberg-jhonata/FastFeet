@@ -26,6 +26,17 @@ class DeliverymanController {
       return res.status(400).json({ error: 'Deliveryman already exists' });
     }
 
+    /**
+     * Check if Avatar exists
+     */
+    if (req.body.avatar_id !== undefined) {
+      const avatarExists = await File.findByPk(req.body.avatar_id);
+
+      if (!avatarExists) {
+        return res.status(400).json({ error: 'Avatar does not exists' });
+      }
+    }
+
     const { id, name } = await Deliveryman.create(req.body);
 
     return res.json({
@@ -37,6 +48,9 @@ class DeliverymanController {
 
   async index(req, res) {
     const deliverymans = await Deliveryman.findAll({
+      where: {
+        deleted_at: null,
+      },
       attributes: ['id', 'name', 'avatar_id', 'email'],
       include: {
         model: File,
@@ -65,10 +79,17 @@ class DeliverymanController {
       return res.status(400).json({ error: 'Validation fails' });
     }
 
+    const { name, avatar_id, email } = req.body;
+
     /**
      * Check if Deliveryman exists
      */
-    const deliveryman = await Deliveryman.findByPk(req.params.id);
+    const deliveryman = await Deliveryman.findOne({
+      where: {
+        id: req.params.id,
+        deleted_at: null,
+      },
+    });
 
     if (!deliveryman) {
       return res.status(400).json({ error: 'Deliveryman does not exists' });
@@ -77,10 +98,10 @@ class DeliverymanController {
     /**
      * Check if Deliveryman email is valid
      */
-    if (req.body.email !== deliveryman.email) {
+    if (email !== deliveryman.email) {
       const deliverymanExists = await Deliveryman.findOne({
         where: {
-          email: req.body.email,
+          email,
         },
       });
 
@@ -92,15 +113,19 @@ class DeliverymanController {
     /**
      * Check if Avatar exists
      */
-    if (req.body.avatar_id !== undefined) {
-      const avatarExists = await File.findByPk(req.body.avatar_id);
+    if (avatar_id !== undefined) {
+      const avatarExists = await File.findByPk(avatar_id);
 
       if (!avatarExists) {
         return res.status(400).json({ error: 'Avatar does not exists' });
       }
     }
 
-    const { id, name, avatar_id, email } = await deliveryman.update(req.body);
+    const { id } = await deliveryman.update({
+      name,
+      avatar_id,
+      email,
+    });
 
     return res.json({
       id,
@@ -111,7 +136,33 @@ class DeliverymanController {
   }
 
   async delete(req, res) {
-    return res.json({ teste: 'ok' });
+    const schema = Yup.object().shape({
+      id: Yup.number().required(),
+    });
+
+    if (!(await schema.isValid(req.params))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    /**
+     * Check if Deliveryman Exists
+     */
+    const deliveryman = await Deliveryman.findOne({
+      where: {
+        id: req.params.id,
+        deleted_at: null,
+      },
+    });
+
+    if (!deliveryman) {
+      return res.status(400).json({ error: 'Delivaryman does not exists' });
+    }
+
+    deliveryman.deleted_at = new Date();
+
+    await deliveryman.save();
+
+    return res.status(200).json({});
   }
 }
 
