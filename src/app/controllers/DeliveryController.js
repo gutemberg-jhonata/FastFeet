@@ -164,6 +164,38 @@ class DeliveryController {
       product,
     });
   }
+
+  async delete(req, res) {
+    const schema = Yup.object().shape({
+      id: Yup.number().required().min(1),
+    });
+
+    if (!(await schema.isValid(req.params))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    const { id } = req.params;
+
+    /**
+     * Check if delivery exists
+     */
+    const delivery = await Delivery.findOne({
+      where: {
+        id,
+        canceled_at: null,
+      },
+    });
+
+    if (!delivery) {
+      return res.status(400).json({ error: 'Delivery does not exists' });
+    }
+
+    delivery.canceled_at = new Date();
+
+    delivery.save();
+
+    return res.json();
+  }
 }
 
 export default new DeliveryController();

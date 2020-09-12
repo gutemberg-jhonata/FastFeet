@@ -162,7 +162,7 @@ class DeliverymanController {
 
     await deliveryman.save();
 
-    return res.status(200).json({});
+    return res.json();
   }
 }
 
