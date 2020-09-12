@@ -3,6 +3,7 @@ import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
 import Delivery from '../models/Delivery';
 import File from '../models/File';
+import Mail from '../../lib/Mail';
 
 class DeliveryController {
   async store(req, res) {
@@ -40,6 +41,15 @@ class DeliveryController {
       recipient_id,
       deliveryman_id,
       product,
+    });
+
+    /**
+     * Send email to deliveryman
+     */
+    await Mail.sendMail({
+      to: `${deliverymanExists.name} <${deliverymanExists.email}>`,
+      subject: 'Nova entrega',
+      text: 'Você tem uma nova entrega cadastrada',
     });
 
     return res.json({
