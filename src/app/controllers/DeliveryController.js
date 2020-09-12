@@ -92,6 +92,78 @@ class DeliveryController {
 
     return res.json(deliveries);
   }
+
+  async update(req, res) {
+    const schema = Yup.object().shape({
+      id: Yup.number().required().min(1),
+      recipient_id: Yup.number().notRequired().min(1),
+      deliveryman_id: Yup.number().notRequired().min(1),
+      signature_id: Yup.number().notRequired().min(1),
+      product: Yup.string().required(),
+    });
+
+    if (
+      !(await schema.isValid({
+        ...req.params,
+        ...req.body,
+      }))
+    ) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    const { recipient_id, deliveryman_id, product } = req.body;
+
+    /**
+     * Check if recipient exists
+     */
+    if (recipient_id !== undefined) {
+      const recipientExists = await Recipient.findByPk(recipient_id);
+
+      if (!recipientExists) {
+        return res.status(400).json({ error: 'Recipient does not exists' });
+      }
+    }
+
+    /**
+     * Check if deliveryman exists
+     */
+    if (deliveryman_id !== undefined) {
+      const deliverymanExists = await Deliveryman.findByPk(deliveryman_id);
+
+      if (!deliverymanExists) {
+        return res.status(400).json({ error: 'Deliveryman does not exists' });
+      }
+    }
+
+    const { id } = req.params;
+
+    /**
+     * Check if delivery exists
+     */
+    const delivery = await Delivery.findOne({
+      where: {
+        id,
+        canceled_at: null,
+      },
+    });
+
+    if (!delivery) {
+      return res.status(400).json({ error: 'Delivery does not exists' });
+    }
+
+    delivery.product = product;
+    delivery.recipient_id = recipient_id || delivery.recipient_id;
+    delivery.deliveryman_id = deliveryman_id || delivery.deliveryman_id;
+
+    delivery.save();
+
+    return res.json({
+      id,
+      recipient_id: delivery.recipient_id,
+      deliveryman_id: delivery.deliveryman_id,
+      product,
+    });
+  }
 }
 
 export default new DeliveryController();
