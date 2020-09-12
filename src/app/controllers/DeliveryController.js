@@ -2,6 +2,7 @@ import * as Yup from 'yup';
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
 import Delivery from '../models/Delivery';
+import File from '../models/File';
 
 class DeliveryController {
   async store(req, res) {
@@ -47,6 +48,49 @@ class DeliveryController {
       deliveryman_id,
       product,
     });
+  }
+
+  async index(req, res) {
+    const deliveries = await Delivery.findAll({
+      where: {
+        canceled_at: null,
+      },
+      attributes: ['id', 'product', 'start_date', 'end_date'],
+      include: [
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'id',
+            'name',
+            'street',
+            'number',
+            'complement',
+            'state',
+            'cep',
+          ],
+        },
+        {
+          model: Deliveryman,
+          as: 'deliveryman',
+          attributes: ['id', 'name', 'email'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'name', 'path', 'url'],
+            },
+          ],
+        },
+        {
+          model: File,
+          as: 'signature',
+          attributes: ['id', 'name', 'path', 'url'],
+        },
+      ],
+    });
+
+    return res.json(deliveries);
   }
 }
 
