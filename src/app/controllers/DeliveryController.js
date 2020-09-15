@@ -3,7 +3,8 @@ import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
 import Delivery from '../models/Delivery';
 import File from '../models/File';
-import Mail from '../../lib/Mail';
+import RegistrationMail from '../jobs/RegistrationMail';
+import Queue from '../../lib/Queue';
 
 class DeliveryController {
   async store(req, res) {
@@ -31,9 +32,9 @@ class DeliveryController {
     /**
      * Check if deliveryman exists
      */
-    const deliverymanExists = await Deliveryman.findByPk(deliveryman_id);
+    const deliveryman = await Deliveryman.findByPk(deliveryman_id);
 
-    if (!deliverymanExists) {
+    if (!deliveryman) {
       return res.status(400).json({ error: 'Deliveryman does not exists' });
     }
 
@@ -46,10 +47,8 @@ class DeliveryController {
     /**
      * Send email to deliveryman
      */
-    await Mail.sendMail({
-      to: `${deliverymanExists.name} <${deliverymanExists.email}>`,
-      subject: 'Nova entrega',
-      text: 'Você tem uma nova entrega cadastrada',
+    Queue.add(RegistrationMail.key, {
+      deliveryman,
     });
 
     return res.json({
