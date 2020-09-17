@@ -23,9 +23,9 @@ class DeliveryController {
     /**
      * Check if recipient exists
      */
-    const recipientExists = await Recipient.findByPk(recipient_id);
+    const recipient = await Recipient.findByPk(recipient_id);
 
-    if (!recipientExists) {
+    if (!recipient) {
       return res.status(400).json({ error: 'Recipient does not exists' });
     }
 
@@ -49,6 +49,9 @@ class DeliveryController {
      */
     Queue.add(RegistrationMail.key, {
       deliveryman,
+      recipient,
+      product,
+      date: new Date(),
     });
 
     return res.json({
